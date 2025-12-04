@@ -1,15 +1,12 @@
-###################### CRONOTIPO NETWORK ANALISI ###################### 
+###################### CHRONODIET NETWORK ANALYSIS ###################### 
 { 
   library("phyloseq")
-  # graphical packages
   library("ggplot2")
   library("ggvenn")
   library("egg")
   library("ggh4x")
   library("ggbreak") 
-  # analysis packages
   library("vegan")
-  # utilities
   library("stringr")
   library("xlsx")  
   library("qiime2R")
@@ -52,13 +49,12 @@ data.phy.prop<-prune.dat_top5_Genus
 sample_data(data.phy.prop)
 #data.phy.prop <- subset_taxa(data.phy.prop, !grepl("uncultured", tax_table(data.phy.prop)[, "Genus"])) 
 
-###### NETWORK ANALISI ###### 
+###### NETWORK ANALYSIS ###### 
 amgut_genus <- data.phy.prop
 tax_table(data.phy.prop)
 
 taxtab <- as(tax_table(amgut_genus), "matrix")
 
-# Rename taxonomic table and make Genus unique (rinomina duplicati es. se ci fossero due uncultured li chiamerebbe uncultured_01 e 02)
 amgut_genus_renamed <- renameTaxa(amgut_genus, 
                                   pat = "<name>", 
                                   substPat = "<name>_<subst_name>(<subst_R>)",
@@ -75,19 +71,15 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
-centro
-
-# Vettore per i nomi dei generi
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
-
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
-
+                                         
+print(df_ordinato) 
 props_genus$compSize1
 
 #AVERAGE PATH LENGHT
@@ -96,22 +88,22 @@ library(igraph)
 
 names(net_genus)
 
-# --- Rete ---
-edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
+# --- Metric ---
+edge_list <- net_genus$edgelist1  
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
@@ -121,7 +113,7 @@ cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -137,13 +129,8 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_morning_T1.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
 correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
-
-# Convertire in formato lungo
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
-
-# Creare la heatmap
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -164,7 +151,6 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -255,13 +241,12 @@ tax_table(data.phy.prop)
 
 taxtab <- as(tax_table(amgut_genus), "matrix")
 
-# Rename taxonomic table and make Genus unique (rinomina duplicati es. se ci fossero due uncultured li chiamerebbe uncultured_01 e 02)
 amgut_genus_renamed <- renameTaxa(amgut_genus, 
                                   pat = "<name>", 
                                   substPat = "<name>_<subst_name>(<subst_R>)",
                                   numDupli = "Genus")
 tax_table(amgut_genus_renamed)
-# Network construction and analysis
+
 net_genus <- netConstruct(amgut_genus_renamed,
                           taxRank = "Genus",
                           measure = "spearman",
@@ -272,52 +257,51 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 centro
 
-# Vettore per i nomi dei generi
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
 
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
+print(df_ordinato)
 
 props_genus$compSize1
 
 #AVERAGE PATH LENGHT
 #install.packages('igraph')
 library(igraph)
-
 names(net_genus)
-# --- Rete ---
+                                         
+# --- Network ---
 edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
-# --- Stampa in console ---
+# --- Print in console ---
 cat("Average Path Length:", avg_path_length, "\n")
 cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -334,13 +318,11 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_evening_T1.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
-correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
 
-# Convertire in formato lungo
+correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
 
-# Creare la heatmap
+
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -361,7 +343,6 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -467,18 +448,17 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 centro
 
-# Vettore per i nomi dei generi
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
 
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
+print(df_ordinato)
 
 props_genus$compSize1
 
@@ -487,32 +467,32 @@ props_genus$compSize1
 library(igraph)
 
 names(net_genus)
-# --- Rete ---
+# --- Network ---
 edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
-# --- Stampa in console ---
+# --- Print in console ---
 cat("Average Path Length:", avg_path_length, "\n")
 cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -528,13 +508,9 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_control_T1.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
+
 correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
-
-# Convertire in formato lungo
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
-
-# Creare la heatmap
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -545,7 +521,7 @@ ggplot(melt_correlation, aes(v1, variable, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-############# GRAFICI ############# 
+############# Graphs ############# 
 # Compute layout
 graph3 <- igraph::graph_from_adjacency_matrix(net_genus$adjaMat1, 
                                               weighted = TRUE)
@@ -555,7 +531,6 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -639,18 +614,18 @@ data.phy.prop<-prune.dat_top5_Genus
 sample_data(data.phy.prop)
 #data.phy.prop <- subset_taxa(data.phy.prop, !grepl("uncultured", tax_table(data.phy.prop)[, "Genus"])) 
 
-###### NETWORK ANALISI ###### 
+###### NETWORK ANALYSIS ###### 
 amgut_genus <- data.phy.prop
 tax_table(data.phy.prop)
 
 taxtab <- as(tax_table(amgut_genus), "matrix")
 
-# Rename taxonomic table and make Genus unique (rinomina duplicati es. se ci fossero due uncultured li chiamerebbe uncultured_01 e 02)
 amgut_genus_renamed <- renameTaxa(amgut_genus, 
                                   pat = "<name>", 
                                   substPat = "<name>_<subst_name>(<subst_R>)",
                                   numDupli = "Genus")
 tax_table(amgut_genus_renamed)
+                                         
 # Network construction and analysis
 net_genus <- netConstruct(amgut_genus_renamed,
                           taxRank = "Genus",
@@ -662,18 +637,16 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 centro
-
-# Vettore per i nomi dei generi
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
 
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
+print(df_ordinato) 
 
 props_genus$compSize1
 
@@ -683,32 +656,32 @@ library(igraph)
 
 names(net_genus)
 
-# --- Rete ---
+# --- Network ---
 edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
-# --- Stampa in console ---
+# --- Print in console ---
 cat("Average Path Length:", avg_path_length, "\n")
 cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -724,13 +697,9 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_morning_T0.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
+
 correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
-
-# Convertire in formato lungo
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
-
-# Creare la heatmap
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -741,7 +710,7 @@ ggplot(melt_correlation, aes(v1, variable, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-############# GRAFICI ############# 
+############# GRAPHS ############# 
 # Compute layout
 graph3 <- igraph::graph_from_adjacency_matrix(net_genus$adjaMat1, 
                                               weighted = TRUE)
@@ -751,7 +720,6 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -834,7 +802,7 @@ data.phy.prop<-prune.dat_top5_Genus
 sample_data(data.phy.prop)
 #data.phy.prop <- subset_taxa(data.phy.prop, !grepl("uncultured", tax_table(data.phy.prop)[, "Genus"])) 
 
-###### NETWORK ANALISI ###### 
+###### NETWORK ANALYSIS ###### 
 amgut_genus <- data.phy.prop
 tax_table(data.phy.prop)
 
@@ -857,18 +825,16 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 centro
-
-# Vettore per i nomi dei generi
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
 
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
+print(df_ordinato) 
 
 props_genus$compSize1
 
@@ -877,32 +843,32 @@ props_genus$compSize1
 library(igraph)
 
 names(net_genus)
-# --- Rete ---
+# --- Network ---
 edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
-# --- Stampa in console ---
+# --- Print in console ---
 cat("Average Path Length:", avg_path_length, "\n")
 cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -919,13 +885,10 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_evening_T0.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
-correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
 
-# Convertire in formato lungo
+correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
 
-# Creare la heatmap
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -936,7 +899,7 @@ ggplot(melt_correlation, aes(v1, variable, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-############# GRAFICI ############# 
+############# GRAPHS ############# 
 # Compute layout
 graph3 <- igraph::graph_from_adjacency_matrix(net_genus$adjaMat1, 
                                               weighted = TRUE)
@@ -946,7 +909,7 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
+
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -1052,18 +1015,17 @@ net_genus <- netConstruct(amgut_genus_renamed,
                           verbose = 3)
 props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
 
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
+#CENTRALITY
+centro<-props_genus$centralities$eigenv1 
 centro
 
-# Vettore per i nomi dei generi
 df<-as.data.frame(centro)
 
 library(dplyr)
 df_ordinato <- df %>%
   arrange(desc(centro))
 
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
+print(df_ordinato) 
 
 props_genus$compSize1
 
@@ -1072,32 +1034,32 @@ props_genus$compSize1
 library(igraph)
 
 names(net_genus)
-# --- Rete ---
+# --- Network ---
 edge_list <- net_genus$edgelist1  # Adatta al nome reale se diverso
 edge_list_simple <- edge_list[, 1:2]
 network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
 
-# --- Metriche di rete ---
+# --- Network metric ---
 avg_path_length <- mean_distance(network_igraph, directed = FALSE)
 edge_density_value <- edge_density(network_igraph, loops = FALSE)
 edge_connectivity_value <- edge_connectivity(network_igraph)
 components_count <- components(network_igraph)$no
 
-# --- Centralità ---
+# --- Centrality ---
 degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
 betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
 
-# --- Correlazioni ---
+# --- Correlations ---
 cor <- net_genus$edgelist1
 significant_correlations <- cor[abs(cor$asso) > 0.3, ]
 
-# --- Stampa in console ---
+# --- Print in console ---
 cat("Average Path Length:", avg_path_length, "\n")
 cat("Edge Density:", edge_density_value, "\n")
 cat("Edge Connectivity:", edge_connectivity_value, "\n")
 cat("Number of connected components:", components_count, "\n")
 
-# --- Salva in Excel ---
+# --- Save in Excel ---
 output_list <- list(
   "Metrics" = data.frame(
     Metric = c("Average Path Length", "Edge Density", "Edge Connectivity", "Connected Components"),
@@ -1113,13 +1075,9 @@ writexl::write_xlsx (output_list, path = "network_analysis_results_control_T0.xl
 library(ggplot2)
 library(reshape2)
 
-# Creare una matrice per la heatmap
 correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
-
-# Convertire in formato lungo
 melt_correlation <- melt(correlation_matrix, id.vars = "v1")
 
-# Creare la heatmap
 ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -1130,7 +1088,7 @@ ggplot(melt_correlation, aes(v1, variable, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-############# GRAFICI ############# 
+############# GRAPHS ############# 
 # Compute layout
 graph3 <- igraph::graph_from_adjacency_matrix(net_genus$adjaMat1, 
                                               weighted = TRUE)
@@ -1140,7 +1098,6 @@ lay_fr <- igraph::layout_with_fr(graph3)
 # Row names of the layout matrix must match the node names
 rownames(lay_fr) <- rownames(net_genus$adjaMat1)
 
-#CON COLORI
 plot(props_genus,
      layout = "layout_with_fr",
      shortenLabels = "none",
@@ -1206,250 +1163,3 @@ legend(0.7, 1.1, cex = 0.7, title = "estimated correlation:",
        bty = "n", horiz = TRUE)
 dev.off()
 
-########## ** Si farebbe come segue ma non vengono significatività ** ########## ** 
-###### ON TOP 20 GENERA MORNING vs CONTROL ###### 
-sample_data(data)
-morning_evening<-subset_samples(data, Time=='T1')
-morning_evening<-subset_samples(morning_evening, Type_diet=='morning' | Type_diet=='control')
-sample_data(morning_evening)
-
-data.phy <- tax_glom(morning_evening, taxrank = "Genus", NArm = F)
-data.phy.prop <- transform_sample_counts(data.phy, function(x) x/sum(x)*100)
-top5_Genus <- names(sort(taxa_sums(data.phy.prop), decreasing=TRUE))[1:20] 
-prune.dat_top5_Genus <- prune_taxa(top5_Genus, data.phy.prop)
-otu_table(prune.dat_top5_Genus)
-
-data.phy.prop<-prune.dat_top5_Genus
-#data.phy.prop <- subset_taxa(data.phy.prop, !grepl("uncultured", tax_table(data.phy.prop)[, "Genus"])) 
-
-###### NETWORK ANALISI ###### 
-amgut_genus <- data.phy.prop
-tax_table(data.phy.prop)
-
-taxtab <- as(tax_table(amgut_genus), "matrix")
-
-# Rename taxonomic table and make Genus unique (rinomina duplicati es. se ci fossero due uncultured li chiamerebbe uncultured_01 e 02)
-amgut_genus_renamed <- renameTaxa(amgut_genus, 
-                                  pat = "<name>", 
-                                  substPat = "<name>_<subst_name>(<subst_R>)",
-                                  numDupli = "Genus")
-tax_table(amgut_genus_renamed)
-# Network construction and analysis
-net_genus <- netConstruct(amgut_genus_renamed,
-                          taxRank = "Genus",
-                          measure = "spearman",
-                          zeroMethod = "multRepl",
-                          normMethod = "clr",
-                          sparsMethod = "threshold",
-                          thresh = 0.3,
-                          verbose = 3)
-props_genus <- netAnalyze(net_genus, clustMethod = "cluster_fast_greedy")
-
-#CENTRALITÀ
-centro<-props_genus$centralities$eigenv1 #per misura centralità (tenere quelli con n maggiore)
-centro
-
-# Vettore per i nomi dei generi
-df<-as.data.frame(centro)
-
-library(dplyr)
-df_ordinato <- df %>%
-  arrange(desc(centro))
-
-print(df_ordinato) #i primi sono quelli con centralità maggiore e quindi da tenere più in considerazione
-
-props_genus$compSize1
-
-#AVERAGE PATH LENGHT
-#install.packages('igraph')
-library(igraph)
-
-names(net_genus)
-edge_list <- net_genus$edgelist1  # Sostituisci con il nome corretto
-edge_list_simple <- edge_list[, 1:2]
-network_igraph <- graph_from_edgelist(as.matrix(edge_list_simple), directed = FALSE)
-avg_path_length <- mean_distance(network_igraph, directed = FALSE)
-print(paste("Average Path Length:", avg_path_length))
-
-#DENSITÀ ARCHI
-edge_density_value <- edge_density(network_igraph, loops = FALSE)
-print(paste("Edge Density:", edge_density_value)) #POCO CONNESSA (0,12)
-
-#CONNETTIVITÀ ARCHI
-edge_connectivity_value <- edge_connectivity(network_igraph)
-print(paste("Edge Connectivity:", edge_connectivity_value)) #0 perchè ci sono già delle parti disconnesse
-
-components <- components(network_igraph) 
-print(paste("Number of connected components:", components$no)) #questo è per vedere se effettiviamente ci sono parti disconnesse (se  viene > 1 è così)
-#questo perchè dovrebbe esserci solo 1 rete e se già indica 2 vuol dire che ce ne sono due disconnesse
-
-#CENTRALITÀ DI GRADO
-degree_centrality <- degree(network_igraph, mode = "all", normalized = TRUE)
-print(degree_centrality)
-
-#CENTRALITÀ DI INTERMEDIAZIONE
-betweenness_centrality <- betweenness(network_igraph, normalized = TRUE)
-print(betweenness_centrality)
-
-#CORRELAZIONI
-dim(net_genus$edgelist1) #asso è il coeff. di correlazione
-cor<-net_genus$edgelist1
-cor
-significant_correlations <- cor[abs(cor$asso) > 0.3, ] #questo è per filtrare a quelle maggiori di queso livello MA è da controllare ancora
-print(significant_correlations)
-
-library(ggplot2)
-library(reshape2)
-
-# Creare una matrice per la heatmap
-correlation_matrix <- dcast(significant_correlations, v1 ~ v2, value.var = "asso", fun.aggregate = mean, fill = 0)
-
-# Convertire in formato lungo
-melt_correlation <- melt(correlation_matrix, id.vars = "v1")
-
-# Creare la heatmap
-ggplot(melt_correlation, aes(v1, variable, fill = value)) + 
-  geom_tile() +
-  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                       midpoint = 0, limit = c(-1, 1), 
-                       name = "Correlation") +
-  theme_minimal() + 
-  labs(x = "Genera", y = "Genera") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-##### DIVISIONE PER CONDITION ##### 
-# viene come da tutorial ma non riesco a cambiare nome otu con genere per esempio
-# Split the phyloseq object into two groups
-library(phyloseq)
-sample_data(amgut_genus)
-amgut_season_yes <- subset_samples(amgut_genus, 
-                                   Type_diet == "morning")
-amgut_season_yes #17 samples
-amgut_season_no <- subset_samples(amgut_genus, 
-                                  Type_diet == "control")
-amgut_season_no #19 samples
-n_yes <- phyloseq::nsamples(amgut_season_yes)
-
-# Network construction
-net_season <- netConstruct(data = amgut_season_no, 
-                           data2 = amgut_season_yes,  
-                           filtTax = "highestVar",
-                           filtTaxPar = list(highestVar = 50),
-                           filtSamp = "highestFreq",
-                           filtSampPar = list(highestFreq = n_yes),
-                           measure = "sparcc",
-                           measurePar = list(nlambda = 10, 
-                                             rep.num = 10,
-                                             Rmethod = "approx"),
-                           normMethod = "none", 
-                           zeroMethod = "none",
-                           sparsMethod = "none", 
-                           dissFunc = "signed",
-                           verbose = 2,
-                           seed = 123456)
-# Get count table
-countMat <- phyloseq::otu_table(amgut_genus)
-
-# netConstruct() expects samples in rows
-countMat <- t(as(countMat, "matrix"))
-
-group_vec <- phyloseq::get_variable(amgut_genus, "Type_diet")
-
-# Select the two groups of interest (level "none" is excluded)
-sel <- which(group_vec %in% c("morning", "control"))
-group_vec <- group_vec[sel]
-countMat <- countMat[sel, ]
-
-net_season <- netConstruct(countMat, 
-                           group = group_vec, 
-                           filtTax = "highestVar",
-                           filtTaxPar = list(highestVar = 50),
-                           filtSamp = "highestFreq",
-                           filtSampPar = list(highestFreq = n_yes),
-                           measure = "sparcc",
-                           measurePar = list(nlambda=10, 
-                                             rep.num=10,
-                                             Rmethod = "approx"),
-                           normMethod = "none", 
-                           zeroMethod = "none",
-                           sparsMethod = "none", 
-                           dissFunc = "signed",
-                           verbose = 3,
-                           seed = 123456)
-
-props_season <- netAnalyze(net_season, 
-                           centrLCC = FALSE,
-                           avDissIgnoreInf = TRUE,
-                           sPathNorm = FALSE,
-                           clustMethod = "cluster_fast_greedy",
-                           hubPar = c("degree", "eigenvector"),
-                           hubQuant = 0.9,
-                           lnormFit = TRUE,
-                           normDeg = FALSE,
-                           normBetw = FALSE,
-                           normClose = FALSE,
-                           normEigen = FALSE)
-
-comp_season <- netCompare(props_season, 
-                          permTest = FALSE, 
-                          verbose = FALSE,
-                          seed = 123456)
-
-summary(comp_season, 
-        groupNames = c("morning", "control"),
-        showCentr = c("degree", "between", "closeness"), 
-        numbNodes = 5)
-
-net_season_pears <- netConstruct(data = amgut_season_no, 
-                                 data2 = amgut_season_yes, 
-                                 filtTax = "highestVar",
-                                 filtTaxPar = list(highestVar = 50),
-                                 measure = "spearman", 
-                                 normMethod = "clr",
-                                 sparsMethod = "none", 
-                                 thresh = 0.2,
-                                 verbose = 3)
-
-diff_season <- diffnet(net_season_pears,
-                       diffMethod = "fisherTest", 
-                       adjust = "lfdr")
-# Differential network plot
-plot(diff_season, 
-     cexNodes = 0.8, 
-     cexLegend = 3,
-     cexTitle = 4,
-     mar = c(2,2,8,5),
-     legendGroupnames = c("group 'no'", "group 'yes'"),
-     legendPos = c(0.7,1))
-
-props_season_pears <- netAnalyze(net_season_pears, 
-                                 clustMethod = "cluster_fast_greedy",
-                                 weightDeg = TRUE,
-                                 normDeg = FALSE,
-                                 gcmHeat = FALSE)
-
-# Identify the differentially associated OTUs
-diffmat_sums <- rowSums(diff_season$diffAdjustMat)
-diff_asso_names <- names(diffmat_sums[diffmat_sums > 0])
-
-
-plot(props_season_pears, 
-     nodeFilter = "names",
-     nodeFilterPar = diff_asso_names,
-     nodeColor = "gray",
-     highlightHubs = FALSE,
-     sameLayout = TRUE, 
-     layoutGroup = "union",
-     rmSingles = FALSE, 
-     nodeSize = "clr",
-     edgeTranspHigh = 20,
-     labelScale = FALSE,
-     cexNodes = 1.5, 
-     cexLabels = 0.5,
-     cexTitle = 1.8,
-     groupNames = c("No Pregnant", "Pregnant"),
-     hubBorderCol  = "gray40")
-
-legend(-0.15,-0.7, title = "estimated correlation:", legend = c("+","-"), 
-       col = c("#009900","red"), inset = 0.05, cex = 4, lty = 1, lwd = 4, 
-       bty = "n", horiz = TRUE)
