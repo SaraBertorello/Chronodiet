@@ -1,11 +1,6 @@
-### 1- Entro nel server remoto
+### 1- Import files in qiime2
 
-ssh sarab@150.217.116.115
-cd /data2-new/SaraB
-
-### 2- Importo files in qiime2
-
-(QIIME 2 version: 2021.4) #versione qiime2 su server Magi
+(QIIME 2 version: 2021.4) 
 
 conda activate qiime2-2021.4
 
@@ -13,7 +8,7 @@ mkdir output_cronotipo
 
 qiime tools import   --type 'SampleData[PairedEndSequencesWithQuality]' --input-path raw  --input-format CasavaOneEightSingleLanePerSampleDirFmt --output-path output_cronotipo/paired-end-demux.qza
 
-### 4- Rimozione dei primer con cutadapt
+### 2- Remove primers with cutadapt
 
 source /data2-new/SaraB/miniconda3/etc/profile.d/conda.sh
 conda activate qiime2-2021.4
@@ -33,7 +28,7 @@ qiime feature-table tabulate-seqs --i-data data-trunc.qza --o-visualization rep-
 qiime tools export --input-path data-trunc.qza --output-path .  #file da usare in Bowtie2
 
 
-### 7- Rimozione possibile genoma umano dalle sequenze
+### 3- Removing host (human) genome from sequencing
 
 bowtie2 -x ../../Tools/INDEXED_GRCh38_analysis_set_BOWTIE2/GRCh38_noalt_as -U dna-sequences.fasta --un filtered.fasta -S cronotipo.txt  -f -p 5 --al ./bowtie_fail.txt
 
