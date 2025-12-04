@@ -1,18 +1,15 @@
 ###################### CRONOTIPO ###################### 
 { 
-  library("phyloseq")
-  # graphical packages
-  library("ggplot2")
-  library("ggvenn")
-  library("egg")
-  library("ggh4x")
-  library("ggbreak") 
-  # analysis packages
-  library("vegan")
-  # utilities
-  library("stringr")
-  library("xlsx")  
-  library("qiime2R")
+  library(phyloseq)
+  library(ggplot2)
+  library(ggvenn)
+  library(egg)
+  library(ggh4x)
+  library(ggbreak) 
+  library(vegan)
+  library(stringr)
+  library(xlsx)  
+  library(qiime2R)
   library(phyloseq)
   library(ggplot2)
   library(vegan)
@@ -57,11 +54,6 @@ data1<-as.data.frame(data1)
 #write.csv(data1,'feat.csv')
 data<- phyloseq(otu_table(as.matrix(data1), taxa_are_rows = TRUE), tax_table(as.matrix(data)))
 colnames(otu_table(data))
-samples_to_remove <- c("131668_ID3222_169-SL168-A2-C11old",
-                       "131667_ID3222_83-SL83-A1-C11old",
-                       "154833_ID3501_1-SL173-A1")
-
-data <- prune_samples(!(sample_names(data) %in% samples_to_remove), data)
 colnames(otu_table(data)) <- gsub(".*(SL\\d+).*", "\\1", colnames(otu_table(data)))
 
 metadata<-read.xlsx('Metadata.xlsx', sheetIndex = 2)
@@ -76,7 +68,7 @@ rownames(metadata)
 colnames(data1)
 length(colnames(data1)) #220
 dim(metadata)
-setdiff(rownames(metadata),colnames(data1)) #SL148 in metadata ma non in otu table
+setdiff(rownames(metadata),colnames(data1))
 rownames(metadata) <- trimws(rownames(metadata))
 colnames(otu_table(data)) <- trimws(colnames(otu_table(data))) 
 setdiff(colnames(otu_table(data)), rownames(metadata))
