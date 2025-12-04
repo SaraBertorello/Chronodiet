@@ -1,0 +1,57 @@
+### 1- Entro nel server remoto
+
+ssh sarab@150.217.116.115
+cd /data2-new/SaraB
+
+### 2- Importo files in qiime2
+
+(QIIME 2 version: 2021.4) #versione qiime2 su server Magi
+
+conda activate qiime2-2021.4
+
+mkdir output_cronotipo
+
+qiime tools import   --type 'SampleData[PairedEndSequencesWithQuality]' --input-path raw  --input-format CasavaOneEightSingleLanePerSampleDirFmt --output-path output_cronotipo/paired-end-demux.qza
+
+### 4- Rimozione dei primer con cutadapt
+
+source /data2-new/SaraB/miniconda3/etc/profile.d/conda.sh
+conda activate qiime2-2021.4
+qiime cutadapt trim-paired --i-demultiplexed-sequences output_cronotipo/paired-end-demux.qza --p-front-f CCTACGGGNGGCWGCAG --p-front-r GACTACHVGGGTATCTAATCC --p-discard-untrimmed --o-trimmed-sequences  output_cronotipo/trim-seqs.qza --p-cores 25 --verbose > output_cronotipo/cutadapt_summary.txt
+
+qiime demux summarize --i-data output_cronotipo/trim-seqs.qza --o-visualization output_cronotipo/quality --p-n 100000 
+
+source /data2-new/SaraB/miniconda3/etc/profile.d/conda.sh
+conda activate qiime2-2021.4
+qiime dada2 denoise-paired --i-demultiplexed-seqs trim-seqs.qza --p-trunc-len-f 228 --p-trunc-len-r 219 --o-table Featuredada.qza --o-representative-sequences data-trunc.qza --o-denoising-stats denoising-stats.qza --p-n-threads 20
+
+
+qiime metadata tabulate --m-input-file denoising-stats.qza --o-visualization stats-dada2.qzv    
+
+qiime feature-table tabulate-seqs --i-data data-trunc.qza --o-visualization rep-seqs.qzv    
+    
+qiime tools export --input-path data-trunc.qza --output-path .  #file da usare in Bowtie2
+
+
+### 7- Rimozione possibile genoma umano dalle sequenze
+
+bowtie2 -x ../../Tools/INDEXED_GRCh38_analysis_set_BOWTIE2/GRCh38_noalt_as -U dna-sequences.fasta --un filtered.fasta -S cronotipo.txt  -f -p 5 --al ./bowtie_fail.txt
+
+# reimporto in qiime2 le seq
+
+conda activate qiime2_2
+
+qiime tools import --type FeatureData[Sequence] --input-path filtered.fasta --output-path ./import_filtered
+
+-----------------------------------------------------------------------------------
+source /data2-new/SaraB/miniconda3/etc/profile.d/conda.sh
+
+conda activate qiime2-2021.4
+
+qiime feature-classifier classify-sklearn --i-classifier ../../Tools/SILVA_138_V3V4_BayesClassifier.qza --i-reads import_filtered.qza --o-classification taxonomy.qza
+-----------------------------------------------------------------------------------
+
+scp sarab@150.217.116.115:/data2-new/SaraB/Cronotipo/output_cronotipo/taxonomy.qza .
+scp sarab@150.217.116.115:/data2-new/SaraB/Cronotipo/output_cronotipo/filtered.fasta . 
+
+
