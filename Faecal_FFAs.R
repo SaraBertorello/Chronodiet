@@ -220,7 +220,7 @@ for (x in 1:length(list_PCoA)) {
     data <- data[!is.na(data$Octadecanoic),] 
   }
   
-  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
+  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray")
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
   
   coord_df <- as.data.frame(coord$points)
