@@ -69,21 +69,15 @@ for (y in 1:length(list)) {
     posthoc_results <- rbind.data.frame(posthoc_results, dunn_res)
   }
   
-  # Nomi delle colonne
   colnames(results) <- c(paste(names(list)[y]), "Chi-squared", "p.value")
   results$'p.adj(BH)' <- p.adjust(results$p.value, method = "BH")
   row.names(results) <- NULL
-  
-  # Salva risultati del Kruskal-Wallis
   write.csv2(results, file = paste0("FFA/", names(list)[y], "_raw_abund_KW.csv"), row.names = F)
-  
-  # Salva risultati del post hoc Dunn
   write.csv2(posthoc_results, file = paste0("FFA/", names(list)[y], "_raw_abund_Dunn.csv"), row.names = F)
   
-  # Creazione della tabella per il plot
   table <- melt(data = temp, id.vars = c("ID","Time","Sample_Name","Group","Type_diet"))
   if (y == 1) {
-    table_SCFA <- table # per costruire un plot specifico
+    table_SCFA <- table 
   }
   
   # Plot
@@ -95,7 +89,6 @@ for (y in 1:length(list)) {
   
   #ggsave(filename = paste0("FFA/", names(list)[y], "_raw_abundance.png"), height = 3, width = 6, dpi = 300)
   
-  # Salvataggio per ogni categoria
   if (y == 2) {
     table_MCFA <- table
   }
@@ -224,13 +217,12 @@ for (x in 1:length(list_PCoA)) {
   row.names(data) <- data$ID
   
   if (x == 3) {
-    data <- data[!is.na(data$Octadecanoic),] # rimuovere NA in LCFA
+    data <- data[!is.na(data$Octadecanoic),] 
   }
   
   dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
   
-  # Convertire le coordinate in un dataframe e aggiungere ID e Type_diet
   coord_df <- as.data.frame(coord$points)
   colnames(coord_df) <- c("PC1", "PC2")
   coord_df$ID <- row.names(coord_df)
@@ -269,22 +261,14 @@ for (x in 1:length(list_PCoA)) {
     dpi = 300
   )                         
   
-  # Calcolare la dispersione beta per 'Type_diet'
   p_value_disp <- permutest(betadisper(dist, group = data$Type_diet), permutations = 9999)
-  
-  # Eseguire PERMANOVA semplice solo per 'Type_diet'
   p_value_diver <- adonis(dist ~ Type_diet, data = data, permutations = 9999)
-  
-  # Estrarre i risultati della dispersione
   p_value_disp <- as.data.frame(p_value_disp$tab[1, ])
   colnames(p_value_disp) <- colnames(p_value_diver$aov.tab[1, ])
-  
-  # Unire i risultati di PERMANOVA e dispersione in un unico dataframe
   new_values <- rbind(p_value_diver$aov.tab[1, ], p_value_disp)
   row.names(new_values) <- c(paste("Beta_diversity", names(list_PCoA)[x], sep = "_"),
                              paste("Beta_dispersion", names(list_PCoA)[x], sep = "_"))
-  
-  # Aggiungere i risultati al dataframe globale p_values
+
   p_values <- rbind(p_values, new_values)
   
 }
@@ -488,16 +472,11 @@ for (y in 1:length(list)) {
   results$'p.adj(BH)' <- p.adjust(results$p.value, method = "BH")
   row.names(results) <- NULL
   
-  # Salva risultati del Kruskal-Wallis
   write.csv2(results, file = paste0("FFA/", names(list)[y], "_raw_abund_KW.csv"), row.names = F)
-  
-  # Salva risultati del post hoc Dunn
   write.csv2(posthoc_results, file = paste0("FFA/", names(list)[y], "_raw_abund_Dunn.csv"), row.names = F)
-  
-  # Creazione della tabella per il plot
   table <- melt(data = temp, id.vars = c("ID","Time","Sample_Name","Group","Type_diet"))
   if (y == 1) {
-    table_SCFA <- table # per costruire un plot specifico
+    table_SCFA <- table 
   }
   
   # Plot
@@ -509,7 +488,6 @@ for (y in 1:length(list)) {
   
   #ggsave(filename = paste0("FFA/", names(list)[y], "_raw_abundance.png"), height = 3, width = 6, dpi = 300)
   
-  # Salvataggio per ogni categoria
   if (y == 2) {
     table_MCFA <- table
   }
@@ -638,13 +616,12 @@ for (x in 1:length(list_PCoA)) {
   row.names(data) <- data$ID
   
   if (x == 3) {
-    data <- data[!is.na(data$Octadecanoic),] # rimuovere NA in LCFA
+    data <- data[!is.na(data$Octadecanoic),] 
   }
   
   dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
   
-  # Convertire le coordinate in un dataframe e aggiungere ID e Type_diet
   coord_df <- as.data.frame(coord$points)
   colnames(coord_df) <- c("PC1", "PC2")
   coord_df$ID <- row.names(coord_df)
@@ -683,22 +660,14 @@ for (x in 1:length(list_PCoA)) {
     dpi = 300
   )                         
   
-  # Calcolare la dispersione beta per 'Type_diet'
   p_value_disp <- permutest(betadisper(dist, group = data$Type_diet), permutations = 9999)
-  
-  # Eseguire PERMANOVA semplice solo per 'Type_diet'
   p_value_diver <- adonis(dist ~ Type_diet, data = data, permutations = 9999)
-  
-  # Estrarre i risultati della dispersione
   p_value_disp <- as.data.frame(p_value_disp$tab[1, ])
   colnames(p_value_disp) <- colnames(p_value_diver$aov.tab[1, ])
-  
-  # Unire i risultati di PERMANOVA e dispersione in un unico dataframe
   new_values <- rbind(p_value_diver$aov.tab[1, ], p_value_disp)
   row.names(new_values) <- c(paste("Beta_diversity", names(list_PCoA)[x], sep = "_"),
                              paste("Beta_dispersion", names(list_PCoA)[x], sep = "_"))
   
-  # Aggiungere i risultati al dataframe globale p_values
   p_values <- rbind(p_values, new_values)
   
 }
@@ -838,10 +807,9 @@ for(i in unique(Stool$variable)){
   
 }
 
-########## ***CONFRONTI A COPPIE*** ##########
+########## ***TYPE OF DIET*** ##########
 ########## MORNING ##########
 options(scipen=100)
-#setwd('SARA/Bollous pemphigoid')
 FFA <- read_excel("Faecal_FFAs.xlsx", sheet=2) 
 colnames(FFA)
 FFA$Type_diet
@@ -942,7 +910,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -968,7 +936,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -1002,7 +970,7 @@ for (x in 1:length(list_PCoA)) {
   row.names(data) <- data$ID
   
   if (x == 3) {
-    data <- data[!is.na(data$Octadecanoic),] # rimuovere NA in LCFA
+    data <- data[!is.na(data$Octadecanoic),] 
   }
   
   dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
@@ -1146,7 +1114,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -1172,7 +1140,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -1299,7 +1267,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -1324,7 +1292,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -1358,13 +1326,12 @@ for (x in 1:length(list_PCoA)) {
   row.names(data) <- data$ID
   
   if (x == 3) {
-    data <- data[!is.na(data$Octadecanoic),] # rimuovere NA in LCFA
+    data <- data[!is.na(data$Octadecanoic),] 
   }
   
   dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
   
-  # Convertire le coordinate in un dataframe e aggiungere ID e Time
   coord_df <- as.data.frame(coord$points)
   colnames(coord_df) <- c("PC1", "PC2")
   coord_df$Subject <- row.names(coord_df)
@@ -1501,7 +1468,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")  
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -1527,7 +1494,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -1654,7 +1621,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -1679,7 +1646,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -1856,7 +1823,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")  
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -1882,7 +1849,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")  
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -2010,7 +1977,7 @@ ggsave(filename = "FFA/SCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Nonanoic"), "*", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Nonanoic"), "*", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -2035,7 +2002,7 @@ ggsave(filename = "FFA/MCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -2068,10 +2035,8 @@ for (x in 1:length(list_PCoA)) {
   data <- as.data.frame(list_PCoA[[x]])
   row.names(data) <- data$ID
   
-  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
+  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") 
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
-  
-  # Convertire le coordinate in un dataframe e aggiungere ID e Time
   coord_df <- as.data.frame(coord$points)
   colnames(coord_df) <- c("PC1", "PC2")
   coord_df$ID <- row.names(coord_df)
@@ -2209,7 +2174,7 @@ ggsave(filename = "SCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -2235,7 +2200,7 @@ ggsave(filename = "MCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -2364,7 +2329,7 @@ ggsave(filename = "SCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Octanoic","Decanoic", "Dodecanoic"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -2390,7 +2355,7 @@ ggsave(filename = "MCFA_zoom_plot.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Hexadecanoic","Octadecanoic"), "", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
@@ -2427,10 +2392,9 @@ for (x in 1:length(list_PCoA)) {
     data <- data[!is.na(data$Octadecanoic),] # rimuovere NA in LCFA
   }
   
-  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") # calcolare dissimilarità Bray-Curtis
+  dist <- vegdist(data[, !colnames(data) %in% c("ID","Time","Sample_Name","Group","Type_diet")], method = "bray") 
   coord <- cmdscale(dist, k = 2, eig = TRUE) # PCoA
   
-  # Convertire le coordinate in un dataframe e aggiungere ID e Time
   coord_df <- as.data.frame(coord$points)
   colnames(coord_df) <- c("PC1", "PC2")
   coord_df$Subject <- row.names(coord_df)
@@ -2569,7 +2533,7 @@ ggsave(filename = "SCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 # specific plot for MCFA
 head(table_MCFA, n=2)
 unique(table_MCFA$variable)
-table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Total_MCFA"), "", "")   # DA CAMBIARE!
+table_MCFA$signif<-ifelse(table_MCFA$variable %in% c("Total_MCFA"), "", "")   
 signif_y<-tapply(table_MCFA$value, table_MCFA$variable, max )
 table_MCFA$signif_y<-as.numeric(signif_y[table_MCFA$variable]) + 2 # plus 5 to put the sign higher
 
@@ -2595,7 +2559,7 @@ ggsave(filename = "MCFA_zoom_plot_TOT.png", height=4.5, width = 7, dpi=300)
 
 # specific plot for LCFA
 head(table_LCFA, n=2)
-table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Total_LCFA"), "*", "")   # DA CAMBIARE!
+table_LCFA$signif<-ifelse(table_LCFA$variable %in% c("Total_LCFA"), "*", "")   
 signif_y<-tapply(table_LCFA$value, table_LCFA$variable, max )
 table_LCFA$signif_y<-as.numeric(signif_y[table_LCFA$variable]) + 10 # plus 5 to put the sign higher
 
